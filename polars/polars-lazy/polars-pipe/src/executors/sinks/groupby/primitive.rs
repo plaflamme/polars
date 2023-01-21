@@ -374,7 +374,7 @@ fn insert_and_get<T>(
     agg_fns: &Vec<AggregateFunction>,
 ) -> IdxSize
 where
-    T: NumericNative + VecHashSingle,
+    T: Numeric + VecHashSingle,
 {
     let part = hash_to_partition(h, pre_agg_len);
     let current_partition = unsafe { pre_agg_partitions.get_unchecked_release_mut(part) };

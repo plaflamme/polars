@@ -531,12 +531,7 @@ impl From<(&DataType, usize)> for AnyValueBuffer<'_> {
 }
 
 #[inline]
-unsafe fn add_value<T: NumericNative>(
-    values_buf_ptr: usize,
-    col_idx: usize,
-    row_idx: usize,
-    value: T,
-) {
+unsafe fn add_value<T: Numeric>(values_buf_ptr: usize, col_idx: usize, row_idx: usize, value: T) {
     let column = (*(values_buf_ptr as *mut Vec<Vec<T>>)).get_unchecked_mut(col_idx);
     let el_ptr = column.as_mut_ptr();
     *el_ptr.add(row_idx) = value;

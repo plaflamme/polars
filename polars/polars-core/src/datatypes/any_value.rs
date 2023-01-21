@@ -40,6 +40,9 @@ pub enum AnyValue<'a> {
     Int32(i32),
     /// A 64-bit integer number.
     Int64(i64),
+    /// A 128-bit integer number.
+    #[cfg(feature = "dtype-i128")]
+    Int128(i128),
     /// A 32-bit floating point number.
     Float32(f32),
     /// A 64-bit floating point number.
@@ -115,6 +118,8 @@ impl Serialize for AnyValue<'_> {
             AnyValue::BinaryOwned(v) => {
                 serializer.serialize_newtype_variant(name, 14, "BinaryOwned", v)
             }
+            #[cfg(feature = "dtype-i128")]
+            AnyValue::Int128(v) => serializer.serialize_newtype_variant(name, 15, "Int128", v),
             _ => todo!(),
         }
     }
@@ -133,6 +138,8 @@ impl<'a> Deserialize<'a> for AnyValue<'static> {
             Int16,
             Int32,
             Int64,
+            #[cfg(feature = "dtype-i128")]
+            Int128,
             UInt8,
             UInt16,
             UInt32,
@@ -155,6 +162,7 @@ impl<'a> Deserialize<'a> for AnyValue<'static> {
             "Int16",
             "Int32",
             "Int64",
+            "Int128",
             "Float32",
             "Float64",
             "List",
@@ -219,6 +227,8 @@ impl<'a> Deserialize<'a> for AnyValue<'static> {
                     b"Int16" => AvField::Int16,
                     b"Int32" => AvField::Int32,
                     b"Int64" => AvField::Int64,
+                    #[cfg(feature = "dtype-i128")]
+                    b"Int128" => AvField::Int128,
                     b"UInt8" => AvField::UInt8,
                     b"UInt16" => AvField::UInt16,
                     b"UInt32" => AvField::UInt32,
@@ -280,6 +290,11 @@ impl<'a> Deserialize<'a> for AnyValue<'static> {
                     (AvField::Int64, variant) => {
                         let value = variant.newtype_variant()?;
                         AnyValue::Int64(value)
+                    }
+                    #[cfg(feature = "dtype-i128")]
+                    (AvField::Int128, variant) => {
+                        let value = variant.newtype_variant()?;
+                        AnyValue::Int128(value)
                     }
                     (AvField::UInt8, variant) => {
                         let value = variant.newtype_variant()?;
@@ -908,7 +923,7 @@ impl GetAnyValue for ArrayRef {
     }
 }
 
-impl<K: NumericNative> From<K> for AnyValue<'_> {
+impl<K: Numeric> From<K> for AnyValue<'_> {
     fn from(value: K) -> Self {
         unsafe {
             match K::PRIMITIVE {
@@ -923,6 +938,10 @@ impl<K: NumericNative> From<K> for AnyValue<'_> {
                 }
                 PrimitiveType::Int64 => {
                     AnyValue::Int64(NumCast::from(value).unwrap_unchecked_release())
+                }
+                #[cfg(feature = "dtype-i128")]
+                PrimitiveType::Int128 => {
+                    AnyValue::Int128(NumCast::from(value).unwrap_unchecked_release())
                 }
                 PrimitiveType::UInt8 => {
                     AnyValue::UInt8(NumCast::from(value).unwrap_unchecked_release())

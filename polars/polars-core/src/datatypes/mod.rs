@@ -160,7 +160,7 @@ pub type Utf8Chunked = ChunkedArray<Utf8Type>;
 #[cfg(feature = "dtype-binary")]
 pub type BinaryChunked = ChunkedArray<BinaryType>;
 
-pub trait NumericNative:
+pub trait Numeric:
     PartialOrd
     + NativeType
     + Num
@@ -179,9 +179,20 @@ pub trait NumericNative:
     + Bounded
     + FromPrimitive
     + IsFloat
-    + NativeArithmetics
 {
-    type POLARSTYPE: PolarsNumericType;
+    type POLARSNUMERICTYPE: PolarsNumericType;
+}
+
+pub trait PolarsNumericType: Send + Sync + PolarsDataType + 'static {
+    type Native: Numeric;
+}
+
+pub trait NumericNative: Numeric + NativeArithmetics {
+    type POLARSTYPE: PolarsNumericNativeType;
+}
+
+impl<T> Numeric for T where T: NumericNative {
+    type POLARSNUMERICTYPE = <T as NumericNative>::POLARSTYPE;
 }
 
 impl NumericNative for i8 {
@@ -215,41 +226,58 @@ impl NumericNative for f64 {
     type POLARSTYPE = Float64Type;
 }
 
-pub trait PolarsNumericType: Send + Sync + PolarsDataType + 'static {
+pub trait PolarsNumericNativeType: Send + Sync + PolarsDataType + 'static {
     type Native: NumericNative;
 }
-impl PolarsNumericType for UInt8Type {
+impl PolarsNumericNativeType for UInt8Type {
     type Native = u8;
 }
-impl PolarsNumericType for UInt16Type {
+impl PolarsNumericNativeType for UInt16Type {
     type Native = u16;
 }
-impl PolarsNumericType for UInt32Type {
+impl PolarsNumericNativeType for UInt32Type {
     type Native = u32;
 }
-impl PolarsNumericType for UInt64Type {
+impl PolarsNumericNativeType for UInt64Type {
     type Native = u64;
 }
-impl PolarsNumericType for Int8Type {
+impl PolarsNumericNativeType for Int8Type {
     type Native = i8;
 }
-impl PolarsNumericType for Int16Type {
+impl PolarsNumericNativeType for Int16Type {
     type Native = i16;
 }
-impl PolarsNumericType for Int32Type {
+impl PolarsNumericNativeType for Int32Type {
     type Native = i32;
 }
-impl PolarsNumericType for Int64Type {
+impl PolarsNumericNativeType for Int64Type {
     type Native = i64;
 }
-impl PolarsNumericType for Float32Type {
+impl PolarsNumericNativeType for Float32Type {
     type Native = f32;
 }
-impl PolarsNumericType for Float64Type {
+impl PolarsNumericNativeType for Float64Type {
     type Native = f64;
 }
 
-pub trait PolarsIntegerType: PolarsNumericType {}
+impl<T> PolarsNumericType for T
+where
+    T: PolarsNumericNativeType,
+{
+    type Native = <T as PolarsNumericNativeType>::Native;
+}
+
+#[cfg(feature = "dtype-i128")]
+impl PolarsNumericType for Int128Type {
+    type Native = i128; // TODO
+}
+
+#[cfg(feature = "dtype-i128")]
+impl Numeric for i128 {
+    type POLARSNUMERICTYPE = Int128Type;
+}
+
+pub trait PolarsIntegerType: PolarsNumericNativeType {}
 impl PolarsIntegerType for UInt8Type {}
 impl PolarsIntegerType for UInt16Type {}
 impl PolarsIntegerType for UInt32Type {}
@@ -259,7 +287,7 @@ impl PolarsIntegerType for Int16Type {}
 impl PolarsIntegerType for Int32Type {}
 impl PolarsIntegerType for Int64Type {}
 
-pub trait PolarsFloatType: PolarsNumericType {}
+pub trait PolarsFloatType: PolarsNumericNativeType {}
 impl PolarsFloatType for Float32Type {}
 impl PolarsFloatType for Float64Type {}
 

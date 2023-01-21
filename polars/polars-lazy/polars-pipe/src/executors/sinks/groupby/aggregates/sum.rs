@@ -12,17 +12,17 @@ use polars_utils::unwrap::UnwrapUncheckedRelease;
 use super::*;
 use crate::operators::{ArrowDataType, IdxSize};
 
-pub struct SumAgg<K: NumericNative> {
+pub struct SumAgg<K: Numeric> {
     sum: Option<K>,
 }
 
-impl<K: NumericNative> SumAgg<K> {
+impl<K: Numeric> SumAgg<K> {
     pub(crate) fn new() -> Self {
         SumAgg { sum: None }
     }
 }
 
-impl<K: NumericNative + Add<Output = K> + NumCast> SumAgg<K> {
+impl<K: Numeric + Add<Output = K> + NumCast> SumAgg<K> {
     fn pre_agg_primitive<T: NumCast>(&mut self, item: Option<T>) {
         match (item.map(|v| K::from(v).unwrap()), self.sum) {
             (Some(val), Some(sum)) => self.sum = Some(sum + val),
@@ -34,8 +34,8 @@ impl<K: NumericNative + Add<Output = K> + NumCast> SumAgg<K> {
 
 impl<K> AggregateFn for SumAgg<K>
 where
-    K::POLARSTYPE: PolarsNumericType,
-    K: NumericNative + Add<Output = K>,
+    K::POLARSNUMERICTYPE: PolarsNumericType,
+    K: Numeric + Add<Output = K>,
     <K as Simd>::Simd: Add<Output = <K as Simd>::Simd> + Sum<K>,
 {
     fn has_physical_agg(&self) -> bool {
@@ -89,7 +89,7 @@ where
             let arr = values.chunks().get_unchecked(0);
             arr.slice_unchecked(offset as usize, length as usize)
         };
-        let dtype = K::POLARSTYPE::get_dtype().to_arrow();
+        let dtype = K::POLARSNUMERICTYPE::get_dtype().to_arrow();
         let arr = polars_arrow::compute::cast::cast(arr.as_ref(), &dtype).unwrap();
         let arr = unsafe {
             arr.as_any()

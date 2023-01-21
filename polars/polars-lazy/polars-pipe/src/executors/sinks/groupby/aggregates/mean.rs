@@ -13,12 +13,12 @@ use polars_utils::unwrap::UnwrapUncheckedRelease;
 use super::*;
 use crate::operators::{ArrowDataType, IdxSize};
 
-pub struct MeanAgg<K: NumericNative> {
+pub struct MeanAgg<K: Numeric> {
     sum: Option<K>,
     count: IdxSize,
 }
 
-impl<K: NumericNative> MeanAgg<K> {
+impl<K: Numeric> MeanAgg<K> {
     pub(crate) fn new() -> Self {
         MeanAgg {
             sum: None,
@@ -42,8 +42,8 @@ impl<K: NumericNative> MeanAgg<K> {
 
 impl<K> AggregateFn for MeanAgg<K>
 where
-    K::POLARSTYPE: PolarsNumericType,
-    K: NumericNative + Add<Output = K>,
+    K::POLARSNUMERICTYPE: PolarsNumericType,
+    K: Numeric + Add<Output = K>,
     <K as Simd>::Simd: Add<Output = <K as Simd>::Simd> + Sum<K>,
 {
     fn has_physical_agg(&self) -> bool {
@@ -107,7 +107,7 @@ where
             let arr = values.chunks().get_unchecked(0);
             arr.slice_unchecked(offset as usize, length as usize)
         };
-        let dtype = K::POLARSTYPE::get_dtype().to_arrow();
+        let dtype = K::POLARSNUMERICTYPE::get_dtype().to_arrow();
         let arr = polars_arrow::compute::cast::cast(arr.as_ref(), &dtype).unwrap();
         let arr = unsafe {
             arr.as_any()

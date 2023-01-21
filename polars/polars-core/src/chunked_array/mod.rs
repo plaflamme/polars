@@ -15,6 +15,8 @@ pub mod arithmetic;
 pub mod builder;
 pub mod cast;
 pub mod comparison;
+#[cfg(feature = "dtype-i128")]
+pub mod decimal;
 pub mod float;
 pub mod iterator;
 pub mod kernels;

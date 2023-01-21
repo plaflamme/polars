@@ -230,6 +230,8 @@ impl<'a> From<&AnyValue<'a>> for DataType {
             UInt64(_) => DataType::UInt64,
             Int32(_) => DataType::Int32,
             Int64(_) => DataType::Int64,
+            #[cfg(feature = "dtype-i128")]
+            Int128(_) => todo!(),
             Float32(_) => DataType::Float32,
             Float64(_) => DataType::Float64,
             #[cfg(feature = "dtype-date")]

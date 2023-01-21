@@ -23,7 +23,7 @@ trait GetArray<T> {
     unsafe fn _get_value_unchecked(&self, i: usize) -> Option<T>;
 }
 
-impl<T: NumericNative> GetArray<T> for &PrimitiveArray<T> {
+impl<T: Numeric> GetArray<T> for &PrimitiveArray<T> {
     unsafe fn _get_value_unchecked(&self, i: usize) -> Option<T> {
         self.get_unchecked(i)
     }

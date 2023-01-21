@@ -46,7 +46,7 @@ macro_rules! impl_traits {
     ($struct:ty, $T:tt) => {
         impl<$T> PartialEqInner for $struct
         where
-            $T: NumericNative + Sync,
+            $T: Numeric + Sync,
         {
             #[inline]
             unsafe fn eq_element_unchecked(&self, idx_a: usize, idx_b: usize) -> bool {
@@ -56,7 +56,7 @@ macro_rules! impl_traits {
 
         impl<$T> PartialOrdInner for $struct
         where
-            $T: NumericNative + Sync,
+            $T: Numeric + Sync,
         {
             #[inline]
             unsafe fn cmp_element_unchecked(&self, idx_a: usize, idx_b: usize) -> Ordering {

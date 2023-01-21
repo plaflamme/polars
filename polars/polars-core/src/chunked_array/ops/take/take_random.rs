@@ -351,7 +351,7 @@ impl<'a> IntoTakeRandom<'a> for &'a ListChunked {
 
 pub struct NumTakeRandomChunked<'a, T>
 where
-    T: NumericNative,
+    T: Numeric,
 {
     pub(crate) chunks: Vec<&'a PrimitiveArray<T>>,
     pub(crate) chunk_lens: Vec<IdxSize>,
@@ -359,7 +359,7 @@ where
 
 impl<'a, T> TakeRandom for NumTakeRandomChunked<'a, T>
 where
-    T: NumericNative,
+    T: Numeric,
 {
     type Item = T;
 
@@ -413,13 +413,13 @@ impl<'a> TakeRandomBitmap<'a> {
 
 pub struct NumTakeRandomSingleChunk<'a, T>
 where
-    T: NumericNative,
+    T: Numeric,
 {
     pub(crate) vals: &'a [T],
     pub(crate) validity: TakeRandomBitmap<'a>,
 }
 
-impl<'a, T: NumericNative> NumTakeRandomSingleChunk<'a, T> {
+impl<'a, T: Numeric> NumTakeRandomSingleChunk<'a, T> {
     pub(crate) fn new(arr: &'a PrimitiveArray<T>) -> Self {
         let validity = TakeRandomBitmap::new(arr.validity().unwrap());
         let vals = arr.values();
@@ -429,7 +429,7 @@ impl<'a, T: NumericNative> NumTakeRandomSingleChunk<'a, T> {
 
 impl<'a, T> TakeRandom for NumTakeRandomSingleChunk<'a, T>
 where
-    T: NumericNative,
+    T: Numeric,
 {
     type Item = T;
 

@@ -681,7 +681,7 @@ where
         + VarAggSeries
         + ChunkQuantile<T::Native>
         + QuantileAggSeries,
-    T::Native: Simd + NumericNative + num::pow::Pow<T::Native, Output = T::Native>,
+    T::Native: Simd + Numeric + num::pow::Pow<T::Native, Output = T::Native>,
     <T::Native as Simd>::Simd: std::ops::Add<Output = <T::Native as Simd>::Simd>
         + arrow::compute::aggregate::Sum<T::Native>
         + arrow::compute::aggregate::SimdOrd<T::Native>,
@@ -942,7 +942,7 @@ impl<T> ChunkedArray<T>
 where
     T: PolarsIntegerType,
     ChunkedArray<T>: IntoSeries,
-    T::Native: NumericNative + Ord,
+    T::Native: Numeric + Ord,
     <T::Native as Simd>::Simd: std::ops::Add<Output = <T::Native as Simd>::Simd>
         + arrow::compute::aggregate::Sum<T::Native>
         + arrow::compute::aggregate::SimdOrd<T::Native>,

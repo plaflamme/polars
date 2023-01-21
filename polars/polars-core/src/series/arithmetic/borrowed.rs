@@ -30,7 +30,7 @@ pub trait NumOpsDispatch: Debug {
 
 impl<T> NumOpsDispatch for ChunkedArray<T>
 where
-    T: PolarsNumericType,
+    T: PolarsNumericNativeType,
     ChunkedArray<T>: IntoSeries,
 {
     fn subtract(&self, rhs: &Series) -> PolarsResult<Series> {
@@ -682,7 +682,7 @@ where
 ///
 impl<T> ChunkedArray<T>
 where
-    T: PolarsNumericType,
+    T: PolarsNumericNativeType,
     ChunkedArray<T>: IntoSeries,
 {
     /// Apply lhs - self

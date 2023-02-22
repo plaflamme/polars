@@ -19,6 +19,7 @@ from typing import (
     cast,
     overload,
 )
+from decimal import Context, Decimal
 
 import polars.internals as pli
 from polars.datatypes import (
@@ -308,6 +309,10 @@ def _to_python_datetime(
     else:
         raise NotImplementedError  # pragma: no cover
 
+def _to_python_decimal(sign: int, digits: list[int], precision: int, scale: int) -> Decimal:
+    c = Context()
+    c.prec = precision
+    return c.create_decimal((sign, digits, scale))
 
 # cache here as we have a single tz per column
 # and this function will be called on every conversion

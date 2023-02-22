@@ -267,7 +267,10 @@ fn infer_dtype_dynamic(av: &AnyValue) -> DataType {
                 })
                 .collect(),
         ),
-        av => av.into(),
+        av => {
+            println!("{av:?}");
+            av.into()
+        }
     }
 }
 

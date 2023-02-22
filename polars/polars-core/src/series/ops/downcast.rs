@@ -134,6 +134,19 @@ impl Series {
         }
     }
 
+    /// Unpack to ChunkedArray of dtype Decimal
+    #[cfg(feature = "dtype-i128")]
+    pub fn decimal(&self) -> PolarsResult<&DecimalChunked> {
+        match self.dtype() {
+            DataType::Decimal128(_) => unsafe {
+                Ok(&*(self.as_ref() as *const dyn SeriesTrait as *const DecimalChunked))
+            },
+            dt => Err(PolarsError::SchemaMisMatch(
+                format!("Series of dtype: {dt:?} != Decimal").into(),
+            )),
+        }
+    }
+
     /// Unpack to ChunkedArray of dtype bool
     pub fn bool(&self) -> PolarsResult<&BooleanChunked> {
         match self.dtype() {

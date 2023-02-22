@@ -207,6 +207,18 @@ class Float64(FractionalType):
     """64-bit floating point type."""
 
 
+class Decimal128(FractionalType):
+    """128-bit fixed point decimal type."""
+    precision: int | None = None
+    scale: int | None = None
+
+    def __init__(self, precision: int | None, scale: int | None = None):
+        """
+        TODO
+        """
+        self.precision = precision # TODO: decimal.Context().prec?
+        self.scale = scale
+
 class Boolean(DataType):
     """Boolean type."""
 
@@ -544,7 +556,7 @@ class _DataTypeMappings:
             time: Time,
             list: List,
             tuple: List,
-            Decimal: Float64,
+            Decimal: Decimal128,
             bytes: Binary,
             object: Object,
         }
@@ -576,6 +588,7 @@ class _DataTypeMappings:
             Time: time,
             Binary: bytes,
             List: list,
+            Decimal128: Decimal,
         }
 
     @property
@@ -610,6 +623,7 @@ class _DataTypeMappings:
             time: pa.time64("us"),
             datetime: pa.timestamp("us"),
             timedelta: pa.duration("us"),
+            Decimal: pa.decimal128(28),
         }
 
     @property
@@ -638,6 +652,7 @@ class _DataTypeMappings:
             Duration("us"): pa.duration("us"),
             Duration("ns"): pa.duration("ns"),
             Time: pa.time64("us"),
+            Decimal128: pa.decimal128(28),
         }
 
 

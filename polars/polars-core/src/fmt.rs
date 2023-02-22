@@ -725,6 +725,7 @@ impl Display for AnyValue<'_> {
             AnyValue::Int64(v) => fmt_integer(f, width, *v),
             AnyValue::Float32(v) => fmt_float(f, width, *v),
             AnyValue::Float64(v) => fmt_float(f, width, *v),
+            AnyValue::Decimal(v, precision, scale) => todo!(),
             AnyValue::Boolean(v) => write!(f, "{}", *v),
             AnyValue::Utf8(v) => write!(f, "{}", format_args!("\"{v}\"")),
             AnyValue::Utf8Owned(v) => write!(f, "{}", format_args!("\"{v}\"")),

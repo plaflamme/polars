@@ -94,6 +94,12 @@ impl Series {
             DataType::UInt64 => any_values_to_primitive::<UInt64Type>(av).into_series(),
             DataType::Float32 => any_values_to_primitive::<Float32Type>(av).into_series(),
             DataType::Float64 => any_values_to_primitive::<Float64Type>(av).into_series(),
+            #[cfg(feature = "dtype-i128")]
+            DataType::Decimal128(Some((precision, scale))) => {
+                any_values_to_primitive::<Int128Type>(av)
+                    .into_decimal(*precision, *scale)
+                    .into_series()
+            }
             DataType::Utf8 => any_values_to_utf8(av).into_series(),
             #[cfg(feature = "dtype-binary")]
             DataType::Binary => any_values_to_binary(av).into_series(),
@@ -253,6 +259,8 @@ impl<'a> From<&AnyValue<'a>> for DataType {
             Int64(_) => DataType::Int64,
             Float32(_) => DataType::Float32,
             Float64(_) => DataType::Float64,
+            #[cfg(feature = "dtype-i128")]
+            Decimal(_, precision, scale) => DataType::Decimal128(Some((*precision, *scale))),
             #[cfg(feature = "dtype-date")]
             Date(_) => DataType::Date,
             #[cfg(feature = "dtype-datetime")]

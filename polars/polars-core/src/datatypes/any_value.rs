@@ -44,6 +44,8 @@ pub enum AnyValue<'a> {
     Float32(f32),
     /// A 64-bit floating point number.
     Float64(f64),
+    /// A 128-bit fixed point decimal number.
+    Decimal(i128, usize, usize),
     /// A 32-bit date representing the elapsed time since UNIX epoch (1970-01-01)
     /// in days (32 bits).
     #[cfg(feature = "dtype-date")]
@@ -345,6 +347,8 @@ impl<'a> AnyValue<'a> {
             UInt64(_) => DataType::UInt64,
             Float32(_) => DataType::Float32,
             Float64(_) => DataType::Float64,
+            #[cfg(feature = "dtype-i128")]
+            Decimal(_, precision, scale) => DataType::Decimal128(Some((precision, scale))),
             #[cfg(feature = "dtype-date")]
             Date(_) => DataType::Date,
             #[cfg(feature = "dtype-datetime")]

@@ -139,6 +139,16 @@ pub fn get_supertype(l: &DataType, r: &DataType) -> Option<DataType> {
 
             (Float64, Float32) => Some(Float64),
 
+            // Decimal
+            #[cfg(feature = "dtype-i128")]
+            (Decimal128(None), Decimal128(None)) => Some(Decimal128(None)),
+            #[cfg(feature = "dtype-i128")]
+            (Decimal128(Some((p,s))), Decimal128(None)) => Some(Decimal128(Some((*p,*s)))),
+            #[cfg(feature = "dtype-i128")]
+            (Decimal128(None), Decimal128(Some((p,s)))) => Some(Decimal128(Some((*p,*s)))),
+            #[cfg(feature = "dtype-i128")]
+            (&Decimal128(Some((lp,ls))), &Decimal128(Some((rp,rs)))) => Some(Decimal128(Some((lp.max(rp),ls.max(rs))))),
+
             // Time related dtypes
             #[cfg(feature = "dtype-date")]
             (Date, UInt32) => Some(Int64),

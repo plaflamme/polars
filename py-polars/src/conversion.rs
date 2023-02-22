@@ -197,6 +197,24 @@ impl IntoPy<PyObject> for Wrap<AnyValue<'_>> {
             AnyValue::Int64(v) => v.into_py(py),
             AnyValue::Float32(v) => v.into_py(py),
             AnyValue::Float64(v) => v.into_py(py),
+            AnyValue::Decimal(v, precision, scale) => {
+                let pl = PyModule::import(py, "polars").unwrap();
+                let utils = pl.getattr("utils").unwrap();
+                let convert = utils.getattr("_to_python_decimal").unwrap();
+                fn to_digits(mut v: i128) -> Vec<u8> {
+                    let mut digits: Vec<u8> = Vec::with_capacity(31);
+                    while v > 0 {
+                        let n = (v % 10) as u8;
+                        v /= 10;
+                        digits.push(n);
+                    }
+                    digits
+                }
+                convert
+                    .call1((if v < 0 { 1 } else { 0 }, to_digits(v), precision, scale))
+                    .unwrap()
+                    .into_py(py)
+            }
             AnyValue::Null => py.None(),
             AnyValue::Boolean(v) => v.into_py(py),
             AnyValue::Utf8(v) => v.into_py(py),
@@ -358,6 +376,7 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "Duration" => DataType::Duration(TimeUnit::Microseconds),
                     "Float32" => DataType::Float32,
                     "Float64" => DataType::Float64,
+                    "Decimal128" => DataType::Decimal128(None),
                     #[cfg(feature = "object")]
                     "Object" => DataType::Object(OBJECT_NAME),
                     "List" => DataType::List(Box::new(DataType::Boolean)),
@@ -521,12 +540,45 @@ impl ToPyObject for Wrap<&DateChunked> {
     }
 }
 
+impl ToPyObject for Wrap<&DecimalChunked> {
+    fn to_object(&self, py: Python) -> PyObject {
+        let pl = PyModule::import(py, "polars").unwrap();
+        let utils = pl.getattr("utils").unwrap();
+        let convert = utils.getattr("_to_python_decimal").unwrap();
+
+        let precision = self.0.precision();
+        let scale = self.0.scale();
+
+        fn to_digits(mut v: i128) -> Vec<u8> {
+            let mut digits: Vec<u8> = Vec::with_capacity(31);
+
+            while v > 0 {
+                let n = (v % 10) as u8;
+                v /= 10;
+                digits.push(n);
+            }
+            digits
+        }
+
+        let iter = self.0.into_iter().map(|opt_v| {
+            opt_v.map(|v| {
+                convert
+                    .call1((if v < 0 { 1 } else { 0 }, to_digits(v), precision, scale))
+                    .unwrap()
+            })
+        });
+        PyList::new(py, iter).into_py(py)
+    }
+}
+
 impl<'s> FromPyObject<'s> for Wrap<AnyValue<'s>> {
     fn extract(ob: &'s PyAny) -> PyResult<Self> {
         if ob.is_instance_of::<PyBool>().unwrap() {
             Ok(AnyValue::Boolean(ob.extract::<bool>().unwrap()).into())
         } else if let Ok(v) = ob.extract::<i64>() {
             Ok(AnyValue::Int64(v).into())
+        } else if ob.get_type().name()?.eq("Decimal") {
+            todo!()
         } else if let Ok(v) = ob.extract::<f64>() {
             Ok(AnyValue::Float64(v).into())
         } else if let Ok(v) = ob.extract::<&'s str>() {

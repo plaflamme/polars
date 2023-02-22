@@ -66,6 +66,7 @@ impl PyDataFrame {
             }
             _ => fld,
         });
+        println!("{schema:?}");
         let mut schema = Schema::from(fields);
 
         if let Some(schema_overwrite) = schema_overwrite {
@@ -82,7 +83,7 @@ impl PyDataFrame {
                 }
             }
         }
-
+        println!("{schema:?}");
         let df = DataFrame::from_rows_and_schema(&rows, &schema).map_err(PyPolarsErr::from)?;
         Ok(df.into())
     }

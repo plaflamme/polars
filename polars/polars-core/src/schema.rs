@@ -39,6 +39,7 @@ where
             IndexMap::with_capacity_and_hasher(iter.size_hint().0, ahash::RandomState::default());
         for fld in iter {
             let fld = fld.into();
+            println!("{fld:?}");
             map.insert(fld.name().clone(), fld.data_type().clone());
         }
         Self { inner: map }
